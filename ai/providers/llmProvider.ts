@@ -2,6 +2,13 @@ import { ChatOpenAI } from "@langchain/openai"
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai"
 import { ChatMistralAI } from "@langchain/mistralai"
 import { BaseMessage, HumanMessage } from "@langchain/core/messages"
+import {
+  buildImageContentParts,
+  ImageAttachment,
+  normalizeModelIdentifier,
+  normalizeOpenAICompatibleBaseUrl,
+} from "./imagePayload"
+import { convertImageAttachmentToPngBase64 } from "./imageTransforms"
 
 export type LLMProvider = "openai" | "google" | "mistral" | "openai_compatible"
 
@@ -19,7 +26,7 @@ export interface LLMSettings {
 export interface LLMRequest {
   prompt: string
   schema?: Record<string, unknown>
-  attachments?: any[]
+  attachments?: ImageAttachment[]
 }
 
 export interface LLMResponse {
@@ -32,32 +39,34 @@ export interface LLMResponse {
 async function requestLLMUnified(config: LLMConfig, req: LLMRequest): Promise<LLMResponse> {
   try {
     const temperature = 0
+    const modelName = normalizeModelIdentifier(config.model)
+    const normalizedBaseUrl = normalizeOpenAICompatibleBaseUrl(config.baseUrl)
     let model: any
     if (config.provider === "openai") {
       model = new ChatOpenAI({
         apiKey: config.apiKey,
-        model: config.model,
+        model: modelName,
         temperature: temperature,
       })
     } else if (config.provider === "google") {
       model = new ChatGoogleGenerativeAI({
         apiKey: config.apiKey,
-        model: config.model,
+        model: modelName,
         temperature: temperature,
       })
     } else if (config.provider === "mistral") {
       model = new ChatMistralAI({
         apiKey: config.apiKey,
-        model: config.model,
+        model: modelName,
         temperature: temperature,
       })
     } else if (config.provider === "openai_compatible") {
       model = new ChatOpenAI({
         apiKey: config.apiKey || "not-needed",
-        model: config.model,
+        model: modelName,
         temperature: temperature,
         configuration: {
-          baseURL: config.baseUrl?.trim(),
+          baseURL: normalizedBaseUrl,
         },
       })
     } else {
@@ -70,12 +79,9 @@ async function requestLLMUnified(config: LLMConfig, req: LLMRequest): Promise<LL
 
     let message_content: any = [{ type: "text", text: req.prompt }]
     if (req.attachments && req.attachments.length > 0) {
-      const images = req.attachments.map((att) => ({
-        type: "image_url",
-        image_url: {
-          url: `data:${att.contentType};base64,${att.base64}`,
-        },
-      }))
+      const images = await buildImageContentParts(config, req.attachments, {
+        convertToPngBase64: convertImageAttachmentToPngBase64,
+      })
       message_content.push(...images)
     }
     const messages: BaseMessage[] = [new HumanMessage({ content: message_content })]
