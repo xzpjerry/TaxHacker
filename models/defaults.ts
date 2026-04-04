@@ -51,6 +51,12 @@ export const DEFAULT_SETTINGS = [
     value: DEFAULT_PROMPT_ANALYSE_NEW_FILE,
   },
   {
+    code: "openai_compatible_send_png_data_url",
+    name: "Convert OpenAI-Compatible images to PNG",
+    description: "When enabled, OpenAI-compatible image requests are converted to PNG before sending.",
+    value: "true",
+  },
+  {
     code: "is_welcome_message_hidden",
     name: "Do not show welcome message on dashboard",
     description: "",

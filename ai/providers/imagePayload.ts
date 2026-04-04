@@ -6,6 +6,7 @@ export type ImageAttachment = {
 type ProviderConfigForImages = {
   provider: "openai" | "google" | "mistral" | "openai_compatible"
   baseUrl?: string
+  sendPngDataUrl?: boolean
 }
 
 type ImageContentPart = {
@@ -68,7 +69,9 @@ export async function buildImageContentParts(
   options: ImagePayloadOptions = {}
 ): Promise<ImageContentPart[]> {
   const useLmStudioPayload =
-    config.provider === "openai_compatible" && isLikelyLmStudioBaseUrl(config.baseUrl)
+    config.provider === "openai_compatible" &&
+    isLikelyLmStudioBaseUrl(config.baseUrl) &&
+    config.sendPngDataUrl !== false
 
   return Promise.all(
     attachments.map(async (attachment) => {
