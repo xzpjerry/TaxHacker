@@ -26,6 +26,13 @@ import {
 } from "@dnd-kit/sortable"
 import { PROVIDERS } from "@/lib/llm-providers";
 
+type ProviderValue = {
+  apiKey: string
+  model: string
+  baseUrl: string
+  sendPngDataUrl: boolean
+}
+
 
 function getInitialProviderOrder(settings: Record<string, string>) {
   let order: string[] = []
@@ -51,7 +58,7 @@ export default function LLMSettingsForm({
 
   // Controlled values for each provider
   const [providerValues, setProviderValues] = useState(() => {
-    const values: Record<string, { apiKey: string; model: string; baseUrl: string }> = {}
+    const values: Record<string, ProviderValue> = {}
     PROVIDERS.forEach((provider) => {
       values[provider.key] = {
         apiKey: settings[provider.apiKeyName],
@@ -59,17 +66,18 @@ export default function LLMSettingsForm({
         baseUrl: provider.baseUrlName
           ? (settings[provider.baseUrlName] || provider.defaultBaseUrl || "")
           : "",
+        sendPngDataUrl: settings.openai_compatible_send_png_data_url !== "false",
       }
     })
     return values
   })
 
-  function handleProviderValueChange(providerKey: string, field: "apiKey" | "model" | "baseUrl", value: string) {
+  function handleProviderValueChange(providerKey: string, field: keyof ProviderValue, value: string | boolean) {
     setProviderValues((prev) => ({
       ...prev,
       [providerKey]: {
         ...prev[providerKey],
-        [field]: value,
+        [field]: value as never,
       },
     }))
   }
@@ -144,8 +152,8 @@ export default function LLMSettingsForm({
 type DndProviderBlocksProps = {
   providerOrder: string[];
   setProviderOrder: React.Dispatch<React.SetStateAction<string[]>>;
-  providerValues: Record<string, { apiKey: string; model: string; baseUrl: string }>;
-  handleProviderValueChange: (providerKey: string, field: "apiKey" | "model" | "baseUrl", value: string) => void;
+  providerValues: Record<string, ProviderValue>;
+  handleProviderValueChange: (providerKey: string, field: keyof ProviderValue, value: string | boolean) => void;
 };
 
 function DndProviderBlocks({ providerOrder, setProviderOrder, providerValues, handleProviderValueChange }: DndProviderBlocksProps) {
@@ -179,8 +187,8 @@ type SortableProviderBlockProps = {
   id: string;
   idx: number;
   providerKey: string;
-  value: { apiKey: string; model: string; baseUrl: string };
-  handleValueChange: (providerKey: string, field: "apiKey" | "model" | "baseUrl", value: string) => void;
+  value: ProviderValue;
+  handleValueChange: (providerKey: string, field: keyof ProviderValue, value: string | boolean) => void;
 };
 
 function SortableProviderBlock({ id, idx, providerKey, value, handleValueChange }: SortableProviderBlockProps) {
@@ -237,6 +245,19 @@ function SortableProviderBlock({ id, idx, providerKey, value, handleValueChange 
           className="w-full border rounded px-2 py-1"
           placeholder="Base URL (e.g. http://localhost:11434/v1)"
         />
+      )}
+      {provider.key === "openai_compatible" && (
+        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+          <input type="hidden" name="openai_compatible_send_png_data_url" value="false" />
+          <input
+            type="checkbox"
+            name="openai_compatible_send_png_data_url"
+            value="true"
+            checked={value.sendPngDataUrl}
+            onChange={e => handleValueChange(provider.key, "sendPngDataUrl", e.target.checked)}
+          />
+          Convert images to PNG before sending
+        </label>
       )}
       {provider.apiDoc && (
         <small className="text-muted-foreground">

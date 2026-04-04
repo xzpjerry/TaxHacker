@@ -6,7 +6,9 @@ import { User } from "@/prisma/client"
 import { redirect } from "next/navigation"
 
 export async function resetLLMSettings(user: User) {
-  const llmSettings = DEFAULT_SETTINGS.filter((setting) => setting.code === "prompt_analyse_new_file")
+  const llmSettings = DEFAULT_SETTINGS.filter(
+    (setting) => setting.code === "prompt_analyse_new_file" || setting.code === "openai_compatible_send_png_data_url"
+  )
 
   for (const setting of llmSettings) {
     await prisma.setting.upsert({

@@ -40,6 +40,7 @@ export function getLLMSettings(settings: SettingsMap) {
         apiKey: settings.openai_compatible_api_key || "",
         model: settings.openai_compatible_model_name || "",
         baseUrl: settings.openai_compatible_base_url || providerMeta?.defaultBaseUrl || "",
+        sendPngDataUrl: settings.openai_compatible_send_png_data_url !== "false",
       }
     }
     return null

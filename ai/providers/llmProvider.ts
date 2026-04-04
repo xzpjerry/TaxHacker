@@ -17,6 +17,7 @@ export interface LLMConfig {
   apiKey: string
   model: string
   baseUrl?: string
+  sendPngDataUrl?: boolean
 }
 
 export interface LLMSettings {
