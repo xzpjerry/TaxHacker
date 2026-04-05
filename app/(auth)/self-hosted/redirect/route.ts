@@ -1,23 +1,24 @@
+import { getCurrentUser } from "@/lib/auth"
 import config from "@/lib/config"
-import { createUserDefaults, isDatabaseEmpty } from "@/models/defaults"
-import { getSelfHostedUser } from "@/models/users"
-import { revalidatePath } from "next/cache"
+import { prisma } from "@/lib/db"
 import { redirect } from "next/navigation"
 
 export async function GET() {
-  if (!config.selfHosted.isEnabled) {
+  try {
+    const user = await getCurrentUser()
+    const settings = await prisma.setting.findMany({
+      where: { userId: user.id },
+      take: 1,
+    })
+
+    if (settings.length > 0) {
+      redirect("/dashboard")
+    }
+  } catch {
     redirect(config.auth.loginUrl)
   }
 
-  const user = await getSelfHostedUser()
-  if (!user) {
-    redirect(config.selfHosted.welcomeUrl)
-  }
-
-  if (await isDatabaseEmpty(user.id)) {
-    await createUserDefaults(user.id)
-  }
-
-  revalidatePath("/dashboard")
-  redirect("/dashboard")
+  redirect(config.selfHosted.welcomeUrl!)
 }
+
+export const dynamic = "force-dynamic"

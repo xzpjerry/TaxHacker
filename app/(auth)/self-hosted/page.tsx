@@ -2,7 +2,8 @@ import { Card, CardDescription, CardTitle } from "@/components/ui/card"
 import { ColoredText } from "@/components/ui/colored-text"
 import config from "@/lib/config"
 import { PROVIDERS } from "@/lib/llm-providers"
-import { getSelfHostedUser } from "@/models/users"
+import { getCurrentUser } from "@/lib/auth"
+import { prisma } from "@/lib/db"
 import { ShieldAlert } from "lucide-react"
 import Image from "next/image"
 import { redirect } from "next/navigation"
@@ -27,9 +28,17 @@ export default async function SelfHostedWelcomePage() {
     )
   }
 
-  const user = await getSelfHostedUser()
-  if (user) {
-    redirect(config.selfHosted.redirectUrl)
+  try {
+    const user = await getCurrentUser()
+    const settings = await prisma.setting.findMany({
+      where: { userId: user.id },
+      take: 1,
+    })
+    if (settings.length > 0) {
+      redirect("/dashboard")
+    }
+  } catch {
+    redirect(config.auth.loginUrl)
   }
 
   const defaultProvider = PROVIDERS[0].key
