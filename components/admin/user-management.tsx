@@ -172,7 +172,7 @@ export function UserManagement({ users }: { users: UserRecord[] }) {
             />
             <FormInput
               title="Password"
-              type="text"
+              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -208,7 +208,7 @@ export function UserManagement({ users }: { users: UserRecord[] }) {
           }} className="space-y-4">
             <FormInput
               title="New Password"
-              type="text"
+              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
