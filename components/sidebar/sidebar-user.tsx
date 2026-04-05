@@ -87,17 +87,13 @@ export default function SidebarUser({ profile, isSelfHosted }: { profile: UserPr
             </DropdownMenuItem>
           )}
         </DropdownMenuGroup>
-        {!isSelfHosted && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <span onClick={signOut} className="flex items-center gap-2 text-red-600 cursor-pointer">
-                <LogOut className="h-4 w-4" />
-                Log out
-              </span>
-            </DropdownMenuItem>
-          </>
-        )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <span onClick={signOut} className="flex items-center gap-2 text-red-600 cursor-pointer">
+            <LogOut className="h-4 w-4" />
+            Log out
+          </span>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

@@ -1,13 +1,54 @@
 import { LoginForm } from "@/components/auth/login-form"
+import { SelfHostedLoginForm } from "@/components/auth/self-hosted-login-form"
+import { SelfHostedRegisterForm } from "@/components/auth/self-hosted-register-form"
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { ColoredText } from "@/components/ui/colored-text"
 import config from "@/lib/config"
 import Image from "next/image"
-import { redirect } from "next/navigation"
+import Link from "next/link"
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ register?: string }>
+}) {
+  const params = await searchParams
+  const isRegister = params.register === "true"
+
   if (config.selfHosted.isEnabled) {
-    redirect(config.selfHosted.redirectUrl)
+    return (
+      <Card className="w-full max-w-xl mx-auto p-8 flex flex-col items-center justify-center gap-4">
+        <Image src="/logo/512.png" alt="Logo" width={144} height={144} className="w-36 h-36" />
+        <CardTitle className="text-3xl font-bold ">
+          <ColoredText>TaxHacker</ColoredText>
+        </CardTitle>
+        <CardContent className="w-full">
+          {isRegister ? (
+            <>
+              <SelfHostedRegisterForm />
+              <p className="text-center mt-4 text-sm text-muted-foreground">
+                Already have an account?{" "}
+                <Link href="/enter" className="underline hover:text-foreground">
+                  Sign in
+                </Link>
+              </p>
+            </>
+          ) : (
+            <>
+              <SelfHostedLoginForm />
+              {!config.auth.disableSignup && (
+                <p className="text-center mt-4 text-sm text-muted-foreground">
+                  Don&apos;t have an account?{" "}
+                  <Link href="/enter?register=true" className="underline hover:text-foreground">
+                    Register
+                  </Link>
+                </p>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+    )
   }
 
   return (

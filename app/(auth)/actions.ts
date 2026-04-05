@@ -1,13 +1,33 @@
 "use server"
 
+import config from "@/lib/config"
+import { auth } from "@/lib/auth"
 import { createUserDefaults, isDatabaseEmpty } from "@/models/defaults"
 import { updateSettings } from "@/models/settings"
-import { getOrCreateSelfHostedUser } from "@/models/users"
+import { getSelfHostedUser, getOrCreateSelfHostedUser, SELF_HOSTED_USER } from "@/models/users"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
 export async function selfHostedGetStartedAction(formData: FormData) {
-  const user = await getOrCreateSelfHostedUser()
+  let user = await getSelfHostedUser()
+
+  if (!user) {
+    // Create admin user via better-auth so Account record with hashed password is created
+    try {
+      await auth.api.signUpEmail({
+        body: {
+          name: SELF_HOSTED_USER.name,
+          email: SELF_HOSTED_USER.email,
+          password: config.auth.adminPassword,
+        },
+      })
+    } catch {
+      // User may already exist if there was a partial setup, fall back to direct creation
+    }
+
+    // Ensure the user record exists and has the right membership
+    user = await getOrCreateSelfHostedUser()
+  }
 
   if (await isDatabaseEmpty(user.id)) {
     await createUserDefaults(user.id)
@@ -28,12 +48,11 @@ export async function selfHostedGetStartedAction(formData: FormData) {
     }
   }
 
-
   const defaultCurrency = formData.get("default_currency")
   if (defaultCurrency) {
     await updateSettings(user.id, "default_currency", defaultCurrency as string)
   }
 
-  revalidatePath("/dashboard")
-  redirect("/dashboard")
+  revalidatePath("/enter")
+  redirect("/enter")
 }

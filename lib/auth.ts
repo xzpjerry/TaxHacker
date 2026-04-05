@@ -1,5 +1,6 @@
 import config from "@/lib/config"
-import { getSelfHostedUser, getUserByEmail, getUserById, SELF_HOSTED_USER } from "@/models/users"
+import { getUserByEmail, getUserById, SELF_HOSTED_USER } from "@/models/users"
+import { createUserDefaults, isDatabaseEmpty } from "@/models/defaults"
 import { User } from "@/prisma/client"
 import { betterAuth } from "better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
@@ -27,6 +28,11 @@ export const auth = betterAuth({
   appName: config.app.title,
   baseURL: config.app.baseURL,
   secret: config.auth.secret,
+  emailAndPassword: {
+    enabled: true,
+    requireEmailVerification: false,
+    autoSignIn: false,
+  },
   email: {
     provider: "resend",
     from: config.email.from,
@@ -65,37 +71,36 @@ export const auth = betterAuth({
 })
 
 export async function getSession() {
-  if (config.selfHosted.isEnabled) {
-    const user = await getSelfHostedUser()
-    return user ? { user } : null
-  }
-
   return await auth.api.getSession({
     headers: await headers(),
   })
 }
 
 export async function getCurrentUser(): Promise<User> {
-  if (config.selfHosted.isEnabled) {
-    const user = await getSelfHostedUser()
-    if (user) {
-      return user
-    } else {
-      redirect(config.selfHosted.redirectUrl)
-    }
-  }
-
   // Try to return user from session
   const session = await getSession()
   if (session && session.user) {
-    const user = await getUserById(session.user.id)
+    let user = await getUserById(session.user.id)
     if (user) {
+      // Ensure user defaults exist (for newly registered users)
+      if (await isDatabaseEmpty(user.id)) {
+        await createUserDefaults(user.id)
+      }
+      // In self-hosted mode, ensure all users have unlimited membership
+      if (config.selfHosted.isEnabled && user.membershipPlan !== "unlimited") {
+        const { updateUser } = await import("@/models/users")
+        user = await updateUser(user.id, { membershipPlan: "unlimited" })
+      }
       return user
     }
   }
 
   // No session or user found
   redirect(config.auth.loginUrl)
+}
+
+export function isAdmin(user: User) {
+  return user.email === config.auth.adminEmail
 }
 
 export function isSubscriptionExpired(user: User) {

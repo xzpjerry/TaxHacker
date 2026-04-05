@@ -1,4 +1,5 @@
 import config from "@/lib/config"
+import { getSession } from "@/lib/auth"
 import { createUserDefaults, isDatabaseEmpty } from "@/models/defaults"
 import { getSelfHostedUser } from "@/models/users"
 import { revalidatePath } from "next/cache"
@@ -12,6 +13,12 @@ export async function GET() {
   const user = await getSelfHostedUser()
   if (!user) {
     redirect(config.selfHosted.welcomeUrl)
+  }
+
+  // Check if the user has an active session
+  const session = await getSession()
+  if (!session) {
+    redirect(config.auth.loginUrl)
   }
 
   if (await isDatabaseEmpty(user.id)) {

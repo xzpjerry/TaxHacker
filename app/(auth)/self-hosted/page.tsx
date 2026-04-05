@@ -29,7 +29,7 @@ export default async function SelfHostedWelcomePage() {
 
   const user = await getSelfHostedUser()
   if (user) {
-    redirect(config.selfHosted.redirectUrl)
+    redirect(config.auth.loginUrl)
   }
 
   const defaultProvider = PROVIDERS[0].key

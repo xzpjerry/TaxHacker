@@ -1,3 +1,4 @@
+import config from "@/lib/config"
 import { prisma } from "@/lib/db"
 import { Prisma } from "@/prisma/client"
 import { cache } from "react"
@@ -5,8 +6,8 @@ import { isDatabaseEmpty } from "./defaults"
 import { createUserDefaults } from "./defaults"
 
 export const SELF_HOSTED_USER = {
-  email: "taxhacker@localhost",
-  name: "Self-Hosted Mode",
+  email: config.auth.adminEmail,
+  name: "Admin",
   membershipPlan: "unlimited",
 }
 
