@@ -1,5 +1,6 @@
 import { SideNav } from "@/components/settings/side-nav"
 import { Separator } from "@/components/ui/separator"
+import config from "@/lib/config"
 import { Metadata } from "next"
 
 export const metadata: Metadata = {
@@ -49,6 +50,10 @@ const settingsCategories = [
     href: "/settings/danger",
   },
 ]
+
+if (config.selfHosted.isEnabled) {
+  settingsCategories.push({ title: "Admin", href: "/settings/admin" })
+}
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   return (
