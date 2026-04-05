@@ -11,6 +11,16 @@ import { redirect } from "next/navigation"
 export async function selfHostedGetStartedAction(formData: FormData) {
   let user = await getSelfHostedUser()
 
+  // Self-healing: if the user exists but the better-auth account doesn't (due to a previous failed setup), delete the user so we can start fresh
+  if (user) {
+    const { prisma } = await import("@/lib/db")
+    const account = await prisma.account.findFirst({ where: { userId: user.id } })
+    if (!account) {
+      await prisma.user.delete({ where: { id: user.id } })
+      user = null
+    }
+  }
+
   if (!user) {
     // Create admin user via better-auth so Account record with hashed password is created
     try {

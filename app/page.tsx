@@ -16,6 +16,14 @@ export default async function Home() {
     if (!adminUser) {
       redirect(config.selfHosted.welcomeUrl)
     }
+    
+    // Check if the auth credential account exists
+    const { prisma } = await import("@/lib/db")
+    const account = await prisma.account.findFirst({ where: { userId: adminUser.id } })
+    if (!account) {
+      redirect(config.selfHosted.welcomeUrl)
+    }
+
     // Admin exists but no session — go to login
     redirect(config.auth.loginUrl)
   }

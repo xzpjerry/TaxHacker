@@ -15,6 +15,13 @@ export async function GET() {
     redirect(config.selfHosted.welcomeUrl)
   }
 
+  // Check if the auth credential account exists
+  const { prisma } = await import("@/lib/db")
+  const account = await prisma.account.findFirst({ where: { userId: user.id } })
+  if (!account) {
+    redirect(config.selfHosted.welcomeUrl)
+  }
+
   // Check if the user has an active session
   const session = await getSession()
   if (!session) {
