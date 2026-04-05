@@ -68,7 +68,7 @@ const config = {
     secret: env.BETTER_AUTH_SECRET,
     loginUrl: "/enter",
     disableSignup: env.DISABLE_SIGNUP === "true",
-    adminEmail: "taxhacker@localhost",
+    adminEmail: "admin@taxhacker.local",
     adminPassword: env.ADMIN_PASSWORD,
   },
   stripe: {
