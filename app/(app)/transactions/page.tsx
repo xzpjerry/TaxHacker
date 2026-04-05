@@ -72,10 +72,8 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
                 <Upload /> Analyze New Invoice
               </UploadButton>
               <NewTransactionDialog>
-                <Button variant="outline">
-                  <Plus />
-                  Add Manually
-                </Button>
+                <Plus />
+                Add Manually
               </NewTransactionDialog>
             </div>
           </div>
