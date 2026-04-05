@@ -29,7 +29,11 @@ export default async function SelfHostedWelcomePage() {
 
   const user = await getSelfHostedUser()
   if (user) {
-    redirect(config.auth.loginUrl)
+    const { prisma } = await import("@/lib/db")
+    const account = await prisma.account.findFirst({ where: { userId: user.id } })
+    if (account) {
+      redirect(config.auth.loginUrl)
+    }
   }
 
   const defaultProvider = PROVIDERS[0].key

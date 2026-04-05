@@ -31,12 +31,16 @@ export async function selfHostedGetStartedAction(formData: FormData) {
           password: config.auth.adminPassword,
         },
       })
-    } catch {
-      // User may already exist if there was a partial setup, fall back to direct creation
+      user = await getSelfHostedUser()
+    } catch (error) {
+      console.error("Failed to create admin user via better-auth:", error)
+      throw new Error(`Failed to create admin account: ${error instanceof Error ? error.message : "Unknown error"}`)
     }
-
-    // Ensure the user record exists and has the right membership
-    user = await getOrCreateSelfHostedUser()
+    
+    if (!user) {
+      // Fallback only to patch membership, but we don't want to create without betterAuth
+      user = await getOrCreateSelfHostedUser()
+    }
   }
 
   if (await isDatabaseEmpty(user.id)) {
