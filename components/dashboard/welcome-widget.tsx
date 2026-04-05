@@ -87,37 +87,37 @@ export async function WelcomeWidget() {
         </div>
         <div className="flex flex-wrap gap-2 mt-8">
           {settings.openai_api_key === "" && (
-            <Link href="/settings/llm">
-              <Button>
+            <Button asChild>
+              <Link href="/settings/llm">
                 <Key className="h-4 w-4" />
                 Please give your ChatGPT key here
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           )}
-          <Link href="/settings">
-            <Button variant="outline">
+          <Button variant="outline" asChild>
+            <Link href="/settings">
               <Banknote className="h-4 w-4" />
               Default Currency: {settings.default_currency}
-            </Button>
-          </Link>
-          <Link href="/settings/categories">
-            <Button variant="outline">
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/settings/categories">
               <ChartBarStacked className="h-4 w-4" />
               Categories
-            </Button>
-          </Link>
-          <Link href="/settings/projects">
-            <Button variant="outline">
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/settings/projects">
               <FolderOpenDot className="h-4 w-4" />
               Projects
-            </Button>
-          </Link>
-          <Link href="/settings/fields">
-            <Button variant="outline">
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/settings/fields">
               <TextCursorInput className="h-4 w-4" />
               Custom Fields
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </div>
     </Card>
