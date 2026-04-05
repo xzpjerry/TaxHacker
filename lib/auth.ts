@@ -1,9 +1,10 @@
 import config from "@/lib/config"
-import { getSelfHostedUser, getUserByEmail, getUserById, SELF_HOSTED_USER } from "@/models/users"
+import { getUserByEmail, getUserById, SELF_HOSTED_USER } from "@/models/users"
 import { User } from "@/prisma/client"
 import { betterAuth } from "better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { APIError } from "better-auth/api"
+import { emailAndPassword } from "better-auth/plugins"
 import { nextCookies } from "better-auth/next-js"
 import { emailOTP } from "better-auth/plugins/email-otp"
 import { headers } from "next/headers"
@@ -60,32 +61,18 @@ export const auth = betterAuth({
         await sendOTPCodeEmail({ email, otp })
       },
     }),
+    emailAndPassword({ requireEmailVerification: false, allowSignUp: !config.auth.disableSignup }),
     nextCookies(), // make sure this is the last plugin in the array
   ],
 })
 
 export async function getSession() {
-  if (config.selfHosted.isEnabled) {
-    const user = await getSelfHostedUser()
-    return user ? { user } : null
-  }
-
   return await auth.api.getSession({
     headers: await headers(),
   })
 }
 
 export async function getCurrentUser(): Promise<User> {
-  if (config.selfHosted.isEnabled) {
-    const user = await getSelfHostedUser()
-    if (user) {
-      return user
-    } else {
-      redirect(config.selfHosted.redirectUrl)
-    }
-  }
-
-  // Try to return user from session
   const session = await getSession()
   if (session && session.user) {
     const user = await getUserById(session.user.id)
@@ -94,7 +81,10 @@ export async function getCurrentUser(): Promise<User> {
     }
   }
 
-  // No session or user found
+  if (config.selfHosted.isEnabled) {
+    redirect(config.selfHosted.redirectUrl)
+  }
+
   redirect(config.auth.loginUrl)
 }
 
