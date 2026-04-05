@@ -4,6 +4,8 @@ const envSchema = z.object({
   BASE_URL: z.string().url().default("http://localhost:7331"),
   PORT: z.string().default("7331"),
   SELF_HOSTED_MODE: z.enum(["true", "false"]).default("true"),
+  SELF_HOSTED_ADMIN_EMAIL: z.string().default("taxhacker@localhost"),
+  SELF_HOSTED_ADMIN_PASSWORD: z.string().default(""),
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_MODEL_NAME: z.string().default("gpt-4o-mini"),
   GOOGLE_API_KEY: z.string().optional(),
@@ -51,6 +53,10 @@ const config = {
     isEnabled: env.SELF_HOSTED_MODE === "true",
     redirectUrl: "/self-hosted/redirect",
     welcomeUrl: "/self-hosted",
+    admin: {
+      email: env.SELF_HOSTED_ADMIN_EMAIL,
+      password: env.SELF_HOSTED_ADMIN_PASSWORD,
+    },
   },
   ai: {
     openaiApiKey: env.OPENAI_API_KEY,
